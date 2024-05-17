@@ -75,3 +75,133 @@ export const verifyEmail = async (req, res, next) => {
     });
   }
 };
+
+export const loginUser = async (req, res, next) => {
+  try {
+    let email = req.body.email;
+    let password = req.body.password;
+    let user = await User.findOne({ email: email });
+    if (user) {
+      if (user.isVerifiedEmail) {
+        let isValidPassword = await bcrypt.compare(password, user.password);
+        if (isValidPassword) {
+          let infoObj = {
+            _id: user._id,
+          };
+          let expiryInfo = {
+            expiresIn: "365d",
+          };
+          let token = await jwt.sign(infoObj, secreteKey, expiryInfo);
+          res.status(200).json({
+            success: true,
+            message: "User Login Successfully",
+            token: token,
+          });
+        } else {
+          let error = new Error("Credential does not match");
+          throw error;
+        }
+      } else {
+        let error = new Error("Credential does not match");
+        throw error;
+      }
+    } else {
+      let error = new Error("Credential does not match");
+      throw error;
+    }
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const myProfile = async (req, res, next) => {
+  try {
+    let _id = req._id; //here req._id is passing through isAuthenticated middleware
+    let result = await User.findById(_id);
+    res.status(200).json({
+      success: true,
+      message: "Profile read successfully",
+      data: result,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: "unable to read profile",
+    });
+  }
+};
+
+export const updateProfile = async (req, res, next) => {
+  try {
+    let _id = req._id;
+    let data = req.body;
+    //we can not update email, password and phoneNumber
+    delete data.email;
+    delete data.password;
+    delete data.phoneNumber;
+    let result = await User.findByIdAndUpdate(_id, data, { new: true });
+    res.status(201).json({
+      success: true,
+      message: "Profile updated successfully",
+      data: result,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const deleteProfile = async (req, res, next) => {
+  try {
+    let _id = req._id;
+    let result = await User.findByIdAndDelete(_id);
+    res.status(201).json({
+      success: true,
+      message: "Profile Deleted successfully",
+      data: result,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const updatePassword = async (req, res, next) => {
+  try {
+    let _id = req._id;
+    let data = req.body;
+    let oldPassword = data.oldPassword;
+    let newPassword = data.newPassword;
+    let user = await User.findById(_id);
+    let hasPassword = user.password;
+    let isValidPassword = await bcrypt.compare(oldPassword, hasPassword);
+    if (isValidPassword) {
+      let newHashPassword = await bcrypt.hash(newPassword, 10);
+      let result = await User.findByIdAndUpdate(
+        _id,
+        { password: newHashPassword },
+        { new: true }
+      );
+      res.status(201).json({
+        success: true,
+        message: "Password updated successfully.",
+        data: result,
+      });
+    } else {
+      let error = new Error("Credential dose not match");
+      throw error;
+    }
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
