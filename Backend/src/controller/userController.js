@@ -205,3 +205,76 @@ export const updatePassword = async (req, res, next) => {
     });
   }
 };
+
+export const readAllUser = async (req, res, next) => {
+  try {
+    let result = await User.find({});
+    res.status(200).json({
+      success: true,
+      message: "All user read successfully.",
+      data: result,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const readSpecificUser = async (req, res, next) => {
+  try {
+    let id = req.params.id;
+    console.log(id);
+    let result = await User.findById(id);
+    res.status(200).json({
+      success: true,
+      message: "User Read Successfully.",
+      data: result,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const updateSpecificUser = async (req, res, next) => {
+  try {
+    let id = req.params.id;
+    let data = req.body;
+    //we can not update email, password and phoneNumber
+    delete data.email;
+    delete data.password;
+    delete data.phoneNumber;
+    let result = await User.findByIdAndUpdate(id, data, { new: true });
+    res.status(201).json({
+      success: true,
+      message: "User Updated Successfully.",
+      data: result,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const deleteSpecificUser = async (req, res, next) => {
+  try {
+    let id = req.params.id;
+    let result = await User.findByIdAndDelete(id);
+    res.status(200).json({
+      success: true,
+      message: "User deleted successfully.",
+      data: result,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
