@@ -7,22 +7,13 @@ export const registerUser = async (req, res, next) => {
   try {
     let data = req.body;
     let password = data.password;
-    // console.log(password)
     let hasPassword = await bcrypt.hash(password, 10);
-    // console.log(hasPassword);
     data = {
       ...data,
       password: hasPassword,
       isVerifiedEmail: false,
     };
     let result = await User.create(data);
-
-    /* 
-    send email with link
-    =>generate token
-    =>link => frontend link
-    =>send Mail 
-     */
     let infoObj = {
       _id: result._id,
     };
@@ -30,9 +21,6 @@ export const registerUser = async (req, res, next) => {
       expiresIn: "5d",
     };
     let token = await jwt.sign(infoObj, secreteKey, expiryInfo);
-    // console.log(token);
-
-    //send Mail
     await sendMail({
       from: '"Freedom Khabar" <kcanjan2020@gmail.com>',
       to: [req.body.email],
@@ -50,6 +38,34 @@ export const registerUser = async (req, res, next) => {
     res.status(201).json({
       success: true,
       message: "User Created Successfully",
+      data: result,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const verifyEmail = async (req, res, next) => {
+  try {
+    //get token
+    let tokenString = req.headers.authorization;
+    let tokenArray = tokenString.split(" ");
+    let token = tokenArray[1];
+
+    //verify
+    let infoObj = await jwt.verify(token, secreteKey);
+    let userId = infoObj._id;
+    let result = await User.findByIdAndUpdate(
+      userId,
+      { isVerifiedEmail: true },
+      { new: true }
+    );
+    res.status(201).json({
+      success: true,
+      message: "user verified successfully",
       data: result,
     });
   } catch (error) {
