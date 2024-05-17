@@ -11,5 +11,4 @@ expressApp.listen(port, () => {
   console.log(`Express app is Listening at port ${port}`);
 });
 connectToMongoDB();
-
 expressApp.use("/api/auth", userRouter);
