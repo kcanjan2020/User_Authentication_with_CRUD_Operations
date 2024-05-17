@@ -278,3 +278,71 @@ export const deleteSpecificUser = async (req, res, next) => {
     });
   }
 };
+
+export const forgotPassword = async (req, res, next) => {
+  try {
+    let email = req.body.email;
+    let result = await User.findOne({ email: email });
+    if (result) {
+      let infoObj = {
+        _id: result._id,
+      };
+      let expiryInfo = {
+        expiresIn: "5d",
+      };
+      let token = await jwt.sign(infoObj, secreteKey, expiryInfo);
+      // console.log(token)
+      //send Mail
+      await sendMail({
+        from: '"Anjan KC" <kcanjan2020@gmail.com>',
+        to: [req.body.email],
+        subject: "Reset Password",
+        html: `
+      <p>Dear ${result.fullName}</p>
+      <p>Please click below link to reset password</p>
+      <a href="http://localhost:3000/reset-password?token=${token}"> http://localhost:3000/reset-password?token=${token}</a>
+      <p>If you did not request any email verification then please ignore this email</p>
+      <p>Thank Your for using our application</p>
+      `,
+      });
+      res.status(200).json({
+        success: true,
+        message: "Link has been sent to your email to reset password.",
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        message: "Email does not exist.",
+      });
+    }
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const resetPassword = async (req, res, next) => {
+  try {
+    let _id = req._id;
+    let hasPassword = await bcrypt.hash(req.body.password, 10);
+    let result = await User.findByIdAndUpdate(
+      _id,
+      {
+        password: hasPassword,
+      },
+      { new: true }
+    );
+    res.status(201).json({
+      success: true,
+      message: "Password reset successfully.",
+      data: result,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};

@@ -6,6 +6,7 @@ let isAuthenticated = async (req, res, next) => {
     let tokenArray = tokenString.split(" ");
     let token = tokenArray[1];
     let user = await jwt.verify(token, secreteKey);
+    console.log(user);
     let userId = user._id;
     req._id = userId;
     next();

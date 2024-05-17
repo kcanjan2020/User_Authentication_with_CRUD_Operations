@@ -2,11 +2,13 @@ import { Router } from "express";
 import {
   deleteProfile,
   deleteSpecificUser,
+  forgotPassword,
   loginUser,
   myProfile,
   readAllUser,
   readSpecificUser,
   registerUser,
+  resetPassword,
   updatePassword,
   updateProfile,
   updateSpecificUser,
@@ -28,6 +30,9 @@ userRouter
   .route("/read-alluser")
   .get(isAuthenticated, authorized(["admin", "superadmin"]), readAllUser);
 
+userRouter.route("/forgot-password").post(forgotPassword);
+userRouter.route("/reset-password").patch(isAuthenticated, resetPassword);
+
 userRouter
   .route("/:id")
   .get(isAuthenticated, authorized(["admin", "superadmin"]), readSpecificUser)
@@ -38,5 +43,3 @@ userRouter
   )
   .delete(isAuthenticated, authorized(["superadmin"]), deleteSpecificUser);
 export default userRouter;
-
-
