@@ -34,12 +34,16 @@ userRouter.route("/forgot-password").post(forgotPassword);
 userRouter.route("/reset-password").patch(isAuthenticated, resetPassword);
 
 userRouter
-  .route("/:id")
+  .route("/users/:id")
   .get(isAuthenticated, authorized(["admin", "superadmin"]), readSpecificUser)
   .patch(
     isAuthenticated,
     authorized(["admin", "superadmin"]),
     updateSpecificUser
   )
-  .delete(isAuthenticated, authorized(["superadmin"]), deleteSpecificUser);
+  .delete(
+    isAuthenticated,
+    authorized(["admin", "superadmin"]),
+    deleteSpecificUser
+  );
 export default userRouter;
